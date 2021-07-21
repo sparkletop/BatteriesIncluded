@@ -1,0 +1,11 @@
+(
+  name: "BatteriesIncluded",
+  summary: "Tools and resources for beginners",
+  version: "0.1",
+  schelp: "BatteriesIncluded.schelp",
+  dependencies: "",
+  license: "GNU GPL v3.0",
+  copyright: "Anders Eskildsen",
+  ext_dependency: "",
+  url: "https://github.com/sparkletop/batteriesincluded"
+)
