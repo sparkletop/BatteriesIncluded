@@ -1,0 +1,9 @@
+TITLE:: BatteriesIncluded
+summary:: Tools and resources for beginners
+categories:: Utilities
+related:: Classes/SynthDefGui, Classes/BI
+
+DESCRIPTION::
+A set of tools and resources designed to help beginners get up and running. Includes friendly GUIs for common operations as well as ready-to-use ressources such as SynthDefs, samples, and wavetables.
+
+This guide will be updated in the future. For now, see the help files for link::Classes/BI:: and link::Classes/SynthDefGui::.

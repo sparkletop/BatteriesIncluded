@@ -1,7 +1,57 @@
 BI {
-	classvar <specs, <specOrder;
+	classvar <specs, <specOrder, assetFolder, server, <samples, <wavetables;
 
 	*initClass {
+
+		server = Server.default;
+
+		StartUp.add({
+
+			assetFolder = Quarks.all
+			.select{ |q| q.name == "BatteriesIncluded"}
+			.first.localPath +/+ "Assets";
+
+			ServerBoot.add({
+				var synthDefFiles = PathName(assetFolder +/+ "SynthDefs").files
+
+				// Register SynthDefs to be loaded when the user boots the server
+				.select{ |f| f.extension == "scd" };
+
+				synthDefFiles.do{ |f| f.fullPath.load };
+
+				samples = ();
+				wavetables = ();
+
+				// Load samples and wavetables into buffers
+
+				samples.default = Buffer.read(server, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+
+				PathName(assetFolder +/+ "Samples").files.do{ | file |
+					samples[file.asSafeKey] = Buffer.read(server, file.fullPath)
+				};
+
+				PathName(assetFolder +/+ "Wavetables").files.do{ | file |
+					wavetables[file.asSafeKey] = Buffer.read(server, file.fullPath)
+				};
+
+				server.sync;
+
+				// Report a bit of information to user after loading stuff on boot
+				fork {
+					1.wait;
+					[
+						"BatteriesIncluded has loaded the following resources onto the server:",
+						"-" + synthDefFiles.size + "SynthDefs",
+						"-" + samples.size + "Buffers with samples",
+						"-" + wavetables.size + "Buffers with wavetables",
+						"See the help file for BatteriesIncluded for more information."
+					].do(_.postln);
+				}
+				});
+		});
+
+
+		// Add some common specs (work with the SynthDefs included in BI)
 		StartUp.add({
 			specs = Dictionary.newFrom([
 				\atk, ControlSpec(0.001, 5, 4, 0, 0.01, "seconds"),
@@ -72,9 +122,20 @@ BI {
 				\pan, \out, \outBus,
 			];
 		});
+
 	}
 
-	*addSpecsToGlobal {
+	*clearBuffers {
+		samples.notNil.if({samples.values.do(_.free)});
+		wavetables.notNil.if({wavetables.values.do(_.free)});
+
+		server.sync;
+
+		samples = ();
+		wavetables = ();
+	}
+
+	*addSpecsToGlobalLibrary {
 		specs.keysValuesDo{
 			arg key, spec;
 			Spec.add(key, spec);
@@ -85,5 +146,39 @@ BI {
 
 	*specDirectory {
 		specs.keys.do(_.postln);
+	}
+
+	*sampleDirectory {
+		"Here will be listed the samples that come with BatteriesIncluded :-)".postln;
+	}
+
+	*wavetableDirectory {
+		"Here will be listed the wavetables that come with BatteriesIncluded :-)".postln;
+	}
+
+	*prPrintDirectory { | bufDict |
+		bufDict.keysValuesDo
+	}
+}
+
+// A small extension of PathName - turns a file path into a "sanitized" symbol
+// Any character that is not alphanumeric will be replaced with an underscore
++ PathName {
+	asSafeKey {
+		var key = List.new, prev = $a;
+		this.fileNameWithoutExtension.do{ |char|
+			if (
+				char.isAlphaNum,
+				{ key.add(char) },
+				{
+					if (
+						prev.isAlphaNum,
+						{ key.add("_") }
+					)
+				}
+			);
+			prev = char;
+		};
+		^key.join("").asSymbol;
 	}
 }

@@ -1,22 +1,25 @@
-// A GUI to quickly test capabilities of a SynthDef
-
-// Can also be called as a SynthDef instance method SynthDef(\myDef...).gui
-
 SynthDefGui {
-
+	classvar <all;
 	classvar bufnames = #[\buf, \buffer, \bufnum, \bufNum];
 
-	var defName, args, <server,
+	var defName, args, server,
 	plotBuffers, values, synthDesc, topMenu, player,
-	group, synth, specs, keys, <>window, grid,
+	group, synth, specs, keys, <window, grid,
 	gridContainer, sustainTime = 1,
 	snippetWindow, maxBufDisplay = 50, canvas,
-	looping = true, isPlaying = false, playBtn;
+	looping = true, isPlaying = false, playBtn,
+	timeSpec, startArgs, freeing = false;
+
+	*initClass {
+		all = IdentityDictionary.new;
+	}
 
 	*new {
 		arg defName = \default, args,
 		server = Server.default,
 		plotBuffers = true;
+
+		all[defName].free;
 
 		^super.newCopyArgs(
 			defName, args, server,
@@ -25,13 +28,13 @@ SynthDefGui {
 	}
 
 	init {
-		var timeSpec, startArgs, btnFont = Font("Helvetica", 10);
+		var btnFont = Font("Helvetica", 10);
 
 		synthDesc = SynthDescLib.global.synthDescs[defName];
 
 		if ( synthDesc.isNil, {
 			(
-				"SynthDef" + defName + "could not be found."
+				"SynthDef" + defName + "could not be found. Did you .add it first?"
 			).error;
 			^nil;
 		});
@@ -39,13 +42,11 @@ SynthDefGui {
 		startArgs = args !? ( _.asDict ) ?? { Dictionary.new };
 
 		startArgs.select(_.isKindOf(Buffer))
-		/*{ | item |
-			item.isKindOf(Buffer);
-		}*/
 		.keysValuesDo{ | key, buffer |
 			startArgs[key] = buffer.bufnum;
 		};
 
+		// Warnings for common errors
 		if (server.serverRunning.not,
 			{
 				"Audio server is not running".warn;
@@ -57,7 +58,7 @@ SynthDefGui {
 				(
 					"Synths based on SynthDef"
 					+ defName
-					+ "cannot free themselves."
+					+ "cannot free themselves (see the Done help file)"
 				).warn;
 			}
 		);
@@ -74,10 +75,10 @@ SynthDefGui {
 		// Get spec list from SynthDesc metadata
 		specs = synthDesc.specs.deepCopy.asDict;
 
-		// Guesstimate remaining specs based on ControlName and default value
+		// Guestimate remaining specs based on ControlName and default value
 		// If you need to control a gate with the GUI, use a different argument name than \gate
 		synthDesc.controls.reject{ |control|
-			specs.includesKey(control.name)	|| (control.name == \gate)
+			specs.includesKey(control.name)	|| [\gate, \t_gate].includes(control.name)
 		}.do{ |control|
 			var spec, default;
 			default = control.defaultValue;
@@ -335,14 +336,15 @@ SynthDefGui {
 		window = Window(
 			"SynthDefGui: \\" ++ defName,
 			Rect(
-				Window.availableBounds.width * 0.5,
+				Window.availableBounds.width * 0.6,
 				0,
-				Window.availableBounds.width * 0.5,
-				specs.size * 30 + 20
+				(Window.availableBounds.width * 0.4).clip(470, 700),
+				specs.size * 30 + 85
 			)
 			.center_(Window.availableBounds.center)
 			.left_(Window.availableBounds.width * 0.5)
-		).layout_(
+		)
+		.layout_(
 			VLayout(
 				HLayout(
 					StaticText()
@@ -357,11 +359,13 @@ SynthDefGui {
 				topMenu,
 				gridContainer
 			)
-		).onClose_({
-			this.free;
-		});
+		)
+		.onClose_({ freeing.not.if { this.free } })
+		.alwaysOnTop_(true);
 
 		window.front;
+
+		all[defName] = this;
 
 		^this;
 	}
@@ -397,12 +401,12 @@ SynthDefGui {
 
 	stop {
 		player.stop;
-		synth.isPlaying.if({
+		synth.isPlaying.if {
 			group.set(\gate, 0);
-		});
-		synthDesc.canFreeSynth.not.if({
+		};
+		synthDesc.canFreeSynth.not.if{
 			group.freeAllMsg;
-		});
+		};
 		isPlaying = false;
 	}
 
@@ -541,28 +545,20 @@ SynthDefGui {
 	}
 
 	free {
-		window.close;
-		defer {
-			fork {
-				group.set(\gate, 0);
-				player.stop;
-				1.wait;
-				group.free;
-			}
-		}
+		freeing = true;
+		this.stop;
+		group.free;
+		this.window.close;
+		all.removeAt(defName);
 	}
 }
 
-// Doesn't work yet - maybe it's not as simple as doing this.add
+
 + SynthDef {
 
 	gui {
 		arg args,	server = Server.default,
 		plotBuffers = true;
-
-		this.add;
-
-		server.sync;
 
 		^SynthDefGui(this.name, args, server, plotBuffers);
 	}
