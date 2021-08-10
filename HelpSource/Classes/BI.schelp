@@ -4,39 +4,46 @@ categories:: Libraries>BatteriesIncluded
 related:: Guides/BatteriesIncluded, Classes/SynthDefGui
 
 DESCRIPTION::
-BI is the access point for the resources that come with the BatteriesIncluded Quark - samples, wavetables and SynthDefs.
+The BI class is the access point for the resources that come with the BatteriesIncluded Quark, including samples (i.e. audio recordings), wavetables, and specs.
+
+When the audio server is booted, the audio resources (samples and wavetables) will automatically be loaded into Buffers.
 
 CLASSMETHODS::
 
 METHOD:: samples
 
-When the audio server is booted, the samples that come with BatteriesIncluded will automatically be loaded into Buffers which are accessible through BI.samples.
+Access the samples (audio recordings) that come with BatteriesIncluded.
 
-returns:: A dictionary of Buffers
+returns:: A dictionary of Buffers containing samples
 
-METHOD:: sampleDirectory
 
-With the audio server booted, BI.sampleDirectory lists some details about the samples that come with BatteriesIncluded.
+METHOD:: listSamples
+
+Lists some details about the samples that come with BatteriesIncluded.
+
 
 METHOD:: wavetables
 
-When the audio server is booted, the wavetables that come with BatteriesIncluded will automatically be loaded into Buffers. They can be accessed via BI.wavetables.
+Access the wavetables that come with BatteriesIncluded. For use with link::Classes/Osc:: and similar wavetable lookup UGens.
 
-returns:: A dictionary of Buffers
+returns:: A dictionary of Buffers containing wavetables, each 8192 samples long.
 
-METHOD:: wavetableDirectory
+METHOD:: listWavetables
 
 With the audio server booted, BI.sampleDirectory lists the wavetables that come with BatteriesIncluded.
 
+
 METHOD:: clearBuffers
 
-Free all the Buffers that have been loaded by BatteriesIncluded.
+Free all the Buffers that have been loaded onto the server by BatteriesIncluded.
+
 
 METHOD:: specs
 
-The custom ControlSpecs that come with BatteriesIncluded.
+The custom ControlSpecs that come with BatteriesIncluded, organized in a dictionary. These specs are used by link::Classes/SynthDefGui::.
 
-returns:: A dictionary of Specs
+returns:: A dictionary of ControlSpecs
+
 
 METHOD:: specOrder
 
@@ -44,20 +51,47 @@ A sensible ordering of SynthDef argument names. This allows SynthDefGui to group
 
 returns:: An array of Symbols (spec names)
 
+
 METHOD:: addSpecsToGlobalLibrary
 
 Add the ControlSpecs that come with BatteriesIncluded to the global Spec Dictionary.
 
-METHOD:: specDirectory
+By default, this behaviour is disabled. If desired, we can do this automatically at startup by adding this line to the startup file (go to 'File', then 'Open startup file'):
+
+code::
+BI.addSpecsToGlobalLibrary;
+::
+
+
+METHOD:: listSpecs
 
 Lists the names of the ControlSpecs that come with BatteriesIncluded.
 
-PRIVATE:: prPrintDirectory
+
+PRIVATE:: prCheckServer
+
 
 EXAMPLES::
 
-To be added...
+Boot the server before running the examples below.
+
+Play a randomly chosen sample.
 
 code::
-\lorem_ipsum.postln;
+(
+var sample = BI.samples.keys.choose;
+sample.postln;
+BI.samples[sample].play;
+)
+::
+
+Play a randomly chosen wavetable.
+
+code::
+(
+{
+	Osc.ar(BI.wavetables.choose, exprand(200, 800))
+	* Env.perc.kr(2)
+}.play;
+)
 ::

@@ -12,42 +12,42 @@ BI {
 			.first.localPath +/+ "Assets";
 
 			ServerBoot.add({
-				var synthDefFiles = PathName(assetFolder +/+ "SynthDefs").files
-
-				// Register SynthDefs to be loaded when the user boots the server
-				.select{ |f| f.extension == "scd" };
-
-				synthDefFiles.do{ |f| f.fullPath.load };
+				// SynthDefs
+				var synthDefs;
+				PathName(assetFolder +/+ "SynthDefs").files
+				.select{ |f| f.extension == "scd" }
+				.do{ |f,n| f.fullPath.load; synthDefs = n };
 
 				samples = ();
 				wavetables = ();
 
 				// Load samples and wavetables into buffers
 
-				samples.default = Buffer.read(server, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
-
-				PathName(assetFolder +/+ "Samples").files.do{ | file |
-					samples[file.asSafeKey] = Buffer.read(server, file.fullPath)
+				PathName(assetFolder +/+ "Samples").files
+				.sort{ |a,b| a.fileName < b.fileName}
+				.do{ |file|
+					this.samples[file.asSafeKey] = Buffer.read(server, file.fullPath)
 				};
 
-				PathName(assetFolder +/+ "Wavetables").files.do{ | file |
-					wavetables[file.asSafeKey] = Buffer.read(server, file.fullPath)
+				PathName(assetFolder +/+ "Wavetables").files
+				.sort{ |a,b| a.fileName < b.fileName}
+				.do{ |file| this.wavetables[file.asSafeKey] = Buffer.read(server, file.fullPath)
 				};
 
 				server.sync;
 
 				// Report a bit of information to user after loading stuff on boot
 				fork {
-					1.wait;
+					0.2.wait;
 					[
-						"BatteriesIncluded has loaded the following resources onto the server:",
-						"-" + synthDefFiles.size + "SynthDefs",
+						"BatteriesIncluded has loaded the following resources on the server:",
+						"-" + synthDefs + "SynthDefs",
 						"-" + samples.size + "Buffers with samples",
 						"-" + wavetables.size + "Buffers with wavetables",
 						"See the help file for BatteriesIncluded for more information."
 					].do(_.postln);
 				}
-				});
+			});
 		});
 
 
@@ -126,6 +126,10 @@ BI {
 	}
 
 	*clearBuffers {
+		server.serverRunning.not.if({
+			"Server is not running".error;
+			^nil;
+		});
 		samples.notNil.if({samples.values.do(_.free)});
 		wavetables.notNil.if({wavetables.values.do(_.free)});
 
@@ -133,6 +137,7 @@ BI {
 
 		samples = ();
 		wavetables = ();
+		^nil;
 	}
 
 	*addSpecsToGlobalLibrary {
@@ -144,28 +149,46 @@ BI {
 		("See BI.specDirectory for a list of the added specs.").postln;
 	}
 
-	*specDirectory {
+	*listSpecs {
 		specs.keys.do(_.postln);
 	}
 
-	*sampleDirectory {
-		"Here will be listed the samples that come with BatteriesIncluded :-)".postln;
+	*listSamples {
+		var r;
+		"Samples from the BatteriesIncluded quark loaded on the server:".postln;
+		samples.keys.asArray.sort.do{ |key|
+			var buf = this.samples[key],
+			channels = buf.numChannels
+			.switch(1, "mono", 2, "stereo") ?
+			(buf.numChannels.asString + "channels");
+			(
+				"\\" ++ key ++ ":"
+				+ buf.duration.round(0.001).asString ++ "s,"
+				+ channels ++ ","
+				+ "bufnum" + buf.bufnum
+			).postln;
+		};
+		r = samples.keys.choose;
+		("Example: To access the Buffer containing the sample" + r ++ ", use BI.samples[\\" ++ r ++ "] or BI.samples." ++ r).postln;
 	}
 
-	*wavetableDirectory {
+	*listWavetables {
 		"Here will be listed the wavetables that come with BatteriesIncluded :-)".postln;
 	}
 
-	*prPrintDirectory { | bufDict |
-		bufDict.keysValuesDo
+	*prCheckServer {
+		server.serverRunning.not.if({
+			"Server is not running".warn;
+			^nil;
+		});
 	}
 }
 
-// A small extension of PathName - turns a file path into a "sanitized" symbol
-// Any character that is not alphanumeric will be replaced with an underscore
+// A small extension of PathName - turns a file path into a "sanitized" symbol, for use as a dictionary key
+// Substrings composed of non-alphanumeric characters will be replaced with underscores
 + PathName {
 	asSafeKey {
-		var key = List.new, prev = $a;
+		var key = List.new, prev = $-;
 		this.fileNameWithoutExtension.do{ |char|
 			if (
 				char.isAlphaNum,
@@ -173,7 +196,7 @@ BI {
 				{
 					if (
 						prev.isAlphaNum,
-						{ key.add("_") }
+						{ key.add($_) }
 					)
 				}
 			);
