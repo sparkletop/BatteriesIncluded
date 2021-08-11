@@ -13,10 +13,10 @@ BI {
 
 			ServerBoot.add({
 				// SynthDefs
-				var synthDefs;
+				var numSynthDefs;
 				PathName(assetFolder +/+ "SynthDefs").files
 				.select{ |f| f.extension == "scd" }
-				.do{ |f,n| f.fullPath.load; synthDefs = n };
+				.do{ |f,n| f.fullPath.load; numSynthDefs = n };
 
 				samples = ();
 				wavetables = ();
@@ -41,10 +41,10 @@ BI {
 					0.2.wait;
 					[
 						"BatteriesIncluded has loaded the following resources on the server:",
-						"-" + synthDefs + "SynthDefs",
+						"-" + numSynthDefs + "SynthDefs",
 						"-" + samples.size + "Buffers with samples",
 						"-" + wavetables.size + "Buffers with wavetables",
-						"See the help file for BatteriesIncluded for more information."
+						"See the help file for BI for more information."
 					].do(_.postln);
 				}
 			});
@@ -75,7 +75,6 @@ BI {
 				\subDb, ControlSpec(-inf, 0.0, \db, 0, -20, "dB"),
 				\amp, ControlSpec(0, 1, 2, 0, 0.1),
 				\detuneStep, ControlSpec(0, 1, 4, 0, 0.01, "semitones"),
-				\fmIndex, ControlSpec(1, 100, 4, default: 5),
 				\grainDur, ControlSpec(0.001, 0.2, \exp, 0, 0.025, "seconds"),
 				\overlap, ControlSpec(0.1, 50, \exp, 0.1, 2),
 				\probability, \unipolar.asSpec,
@@ -93,7 +92,7 @@ BI {
 			specOrder = [
 				// amplitude
 				\amp, \amplitude, \db, \dB, \deciBel,
-				\decibel, \subDb, \volume, \vol,
+				\decibel, \subDb, \volume, \vol, \subAmp,
 
 				// oscillator
 				\freq, \frequency, \midinote, \note, \pitch, \width,
@@ -185,7 +184,7 @@ BI {
 }
 
 // A small extension of PathName - turns a file path into a "sanitized" symbol, for use as a dictionary key
-// Substrings composed of non-alphanumeric characters will be replaced with underscores
+// Non-alphanumeric characters will be replaced with underscores
 + PathName {
 	asSafeKey {
 		var key = List.new, prev = $-;
