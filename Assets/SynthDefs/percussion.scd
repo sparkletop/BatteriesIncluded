@@ -1,5 +1,5 @@
 // Various percussion SynthDefs
-// Nothing particularly fancy, just some basic kicks and hats to get started :)
+// Nothing particularly fancy, just some basics to get started :)
 
 SynthDef(\kick, {
 	arg pan = 0, amp = 0.1, outBus = 0,
@@ -22,6 +22,54 @@ SynthDef(\kick, {
 	category: \drums,
 	tags: [\percussion, \kick],
 	comments: "Inspired by Nathan Ho, see http://sccode.org/1-57g"
+)).add;
+
+SynthDef(\snare,{
+	arg pan = 0, amp = 0.1, outBus = 0,
+	body = -3, harmonics = 0, click = 0, highNoise = -6, lowNoise = -5;
+	var sig = [
+		// main body
+		SinOsc.ar([180, 330]).sum
+		* Env.perc(0.03, 0.2).ar
+		* body.dbamp,
+
+		// harmonics
+		LFTri.ar([286, 335] * Env.new([1, 1.5, 1], [0.01, 0.09], \sine).ar).sum
+		* Env.perc(0.01, 0.1).ar * 2.dbamp
+		* harmonics.dbamp,
+
+		// initial click
+		LPF.ar(HPF.ar(WhiteNoise.ar, 300), 8000)
+		* Env.linen(0.001, 0.01, 0.001).ar
+		* click.dbamp,
+
+		// high noise (snare coils)
+		HPF.ar(BPeakEQ.ar(WhiteNoise.ar, 4000, 0.5, 3), 300)
+		* Env.perc(0.05, 0.2).delay(0.01).ar(2)
+		* highNoise.dbamp,
+
+		// low noise
+		LPF.ar(HPF.ar(WhiteNoise.ar, 230), 500)
+		* Env.perc(0.1,0.1).ar
+		* lowNoise.dbamp
+	].sum;
+
+	// distortion/compression
+	sig = (sig * 1.5).tanh;
+
+	Out.ar(outBus, Pan2.ar(sig, pan, amp));
+}, metadata: (
+	credit: "Anders Eskildsen",
+	category: \drums,
+	tags: [\percussion, \snare],
+	comments: "Inspired by Nathan Ho (http://sccode.org/1-57g) and Gordon Reid (https://www.soundonsound.com/techniques/practical-snare-drum-synthesis).",
+	specs: (
+		body: \db.asSpec,
+		harmonics: \db.asSpec,
+		click: \db.asSpec,
+		highNoise: \db.asSpec,
+		lowNoise: \db.asSpec;
+	)
 )).add;
 
 SynthDef(\hihat, {
