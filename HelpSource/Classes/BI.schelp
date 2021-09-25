@@ -3,10 +3,14 @@ summary:: Main class for the resources included with the BatteriesIncluded quark
 categories:: Libraries>BatteriesIncluded
 related:: Guides/BatteriesIncluded, Classes/SynthDefGui
 
+
 DESCRIPTION::
-The BI class is the access point for the resources that come with the BatteriesIncluded Quark, including samples (i.e. audio recordings), wavetables, and specs.
+BI is the access point for the resources that come with the BatteriesIncluded Quark: Samples (i.e. audio recordings), wavetables, and other resources.
+
+For source information, see link::Guides/BatteriesIncluded::.
 
 When the audio server is booted, the audio resources (samples and wavetables) will automatically be loaded into Buffers.
+
 
 CLASSMETHODS::
 
@@ -16,21 +20,23 @@ Access the samples (audio recordings) that come with BatteriesIncluded.
 
 returns:: A dictionary of Buffers containing samples
 
-
 METHOD:: listSamples
 
-Lists some details about the samples that come with BatteriesIncluded.
+With the audio server booted, list the samples that come with BatteriesIncluded.
 
 
 METHOD:: wavetables
 
 Access the wavetables that come with BatteriesIncluded. For use with link::Classes/Osc:: and similar wavetable lookup UGens.
 
+To see graphical plots of the waveforms, go to https://www.adventurekid.se/AKRTfiles/AKWF/view/AKWF_0001/waveforms.html
+
 returns:: A dictionary of Buffers containing wavetables, each 8192 samples long.
+
 
 METHOD:: listWavetables
 
-With the audio server booted, BI.sampleDirectory lists the wavetables that come with BatteriesIncluded.
+With the audio server booted, list the wavetables that come with BatteriesIncluded.
 
 
 METHOD:: clearBuffers
@@ -44,7 +50,6 @@ The custom ControlSpecs that come with BatteriesIncluded, organized in a diction
 
 returns:: A dictionary of ControlSpecs
 
-
 METHOD:: specOrder
 
 A sensible ordering of SynthDef argument names. This allows SynthDefGui to group related settings (putting envelope arguments next to one another, for instance).
@@ -56,42 +61,65 @@ METHOD:: addSpecsToGlobalLibrary
 
 Add the ControlSpecs that come with BatteriesIncluded to the global Spec Dictionary.
 
-By default, this behaviour is disabled. If desired, we can do this automatically at startup by adding this line to the startup file (go to 'File', then 'Open startup file'):
+By default, this behaviour is disabled. If desired, we can do this automatically at startup by adding the following line to the startup file (go to 'File', then 'Open startup file'):
 
 code::
 BI.addSpecsToGlobalLibrary;
 ::
 
-
 METHOD:: listSpecs
 
 Lists the names of the ControlSpecs that come with BatteriesIncluded.
 
+METHOD:: listSynthDefs
 
-PRIVATE:: prCheckServer
+Lists the names of the SynthDefs that come with BatteriesIncluded.
+
+
+PRIVATE:: prCheckServer, prListBuffers, clock, synthDefs, server, assetFolder, bufferInfo
 
 
 EXAMPLES::
 
-Boot the server before running the examples below.
-
-Play a randomly chosen sample.
+First things first...
 
 code::
-(
-var sample = BI.samples.keys.choose;
-sample.postln;
-BI.samples[sample].play;
-)
+// First, boot the server
+s.boot;
 ::
 
-Play a randomly chosen wavetable.
-
+Working with the included samples
 code::
+// List the samples that come with BatteriesIncluded
+BI.listSamples;
+
+// Play a randomly chosen sample
+BI.samples.choose.postln.play;
+
+// Play a specific sample with the name guit_em9
+BI.samples.guit_em9.play;
+
+// This notation is equivalent to the one above
+BI.samples[\guit_em9].play; // bracket notation
+::
+
+Working with the included wavetables
+code::
+// List the wavetables that come with BatteriesIncluded
+BI.listWavetables;
+
+// Play a note using a randomly chosen wavetable for the oscillator
+{	Osc.ar(BI.wavetables.choose.postln) * Env.perc.kr(2) * 0.1 ! 2}.play;
+
+// Play a note using a specific wavetable with the name akwf0007
 (
-{
-	Osc.ar(BI.wavetables.choose, exprand(200, 800))
-	* Env.perc.kr(2)
-}.play;
+var buffer = BI.wavetables.akwf0007;
+{	Osc.ar(buffer) * Env.perc.kr(2) * 0.1 ! 2}.play;
+)
+
+// Bracket notation works with wavetables as well
+(
+var buffer = BI.wavetables[\akwf0007];
+{	Osc.ar(buffer) * Env.perc.kr(2) * 0.1 ! 2}.play;
 )
 ::

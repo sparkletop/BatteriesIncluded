@@ -4,6 +4,16 @@ categories:: Utilities
 related:: Classes/SynthDefGui, Classes/BI
 
 DESCRIPTION::
-A set of tools and resources designed to help beginners get up and running. Includes friendly GUIs for common operations as well as ready-to-use ressources such as SynthDefs, samples, and wavetables.
 
-This guide will be updated in the future. For now, see the help files for link::Classes/BI:: and link::Classes/SynthDefGui::.
+A set of tools and resources designed to help beginners get up and running. Includes friendly GUIs for common operations as well as ready-to-use SynthDefs, samples, and wavetables.
+
+SECTION:: Sources
+
+The samples that come with BatteriesIncluded are a repackaged version of the samples that come with Sonic Pi. They have been placed in the public domain under the Creative Commons 0 License. See https://github.com/sonic-pi-net/sonic-pi/blob/main/etc/samples/README.md for further information.
+
+The wavetables that come with BatteriesIncluded are a selection from the AKWF FREE wavetable pack by Kristoffer Ekstrand, aka. Adventure Kid. They have been placed in the public domain under the Creative Commons 0 License. See
+https://www.adventurekid.se/akrt/waveforms/adventure-kid-waveforms/ for further information.
+
+SECTION:: For now...
+
+This guide will probably be updated in the future as BatteriesIncluded is developed further. For now, see the help files for link::Classes/BI:: and link::Classes/SynthDefGui:: to get started.

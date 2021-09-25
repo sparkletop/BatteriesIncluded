@@ -1,58 +1,70 @@
 BI {
-	classvar <specs, <specOrder, assetFolder, server, <samples, <wavetables;
+	classvar <>assetFolder, <samples, <wavetables, <server, handlers, <synthDefs, <specs, <specOrder, <bufferInfo;
 
 	*initClass {
+		server = server ? Server.default;
 
-		server = Server.default;
+		Class.initClassTree(Quarks);
 
-		StartUp.add({
+		assetFolder = Quarks.all
+		.select{ |q| q.name == "BatteriesIncluded"}
+		.first.localPath +/+ "Assets";
 
-			assetFolder = Quarks.all
-			.select{ |q| q.name == "BatteriesIncluded"}
-			.first.localPath +/+ "Assets";
+		ServerBoot.add({
+			var oldDefs, sdFiles;
 
-			ServerBoot.add({
-				// SynthDefs
-				var numSynthDefs;
-				PathName(assetFolder +/+ "SynthDefs").files
-				.select{ |f| f.extension == "scd" }
-				.do{ |f,n| f.fullPath.load; numSynthDefs = n };
+			// Load samples and wavetables into buffers
+			samples = ();
+			wavetables = ();
+			bufferInfo = ();
 
-				samples = ();
-				wavetables = ();
-
-				// Load samples and wavetables into buffers
-
-				PathName(assetFolder +/+ "Samples").files
-				.sort{ |a,b| a.fileName < b.fileName}
+			[
+				(name: "Samples", dict: this.samples),
+				(name: "Wavetables", dict: this.wavetables)
+			].do{ |d|
+				var bufnums = List.new;
+				PathName(assetFolder +/+ d.name).files
+				.sort{ |a, b| a.fileName < b.fileName}
 				.do{ |file|
-					this.samples[file.asSafeKey] = Buffer.read(server, file.fullPath)
+					var key = file.asSafeKey;
+					d.dict[key] = Buffer.read(server, file.fullPath);
+					bufnums.add(d.dict[key].bufnum);
 				};
+				bufferInfo[d.name.toLower.asSymbol] = Dictionary.newFrom([
+					\lo, bufnums.first,
+					\hi, bufnums.last
+				]);
+			};
 
-				PathName(assetFolder +/+ "Wavetables").files
-				.sort{ |a,b| a.fileName < b.fileName}
-				.do{ |file| this.wavetables[file.asSafeKey] = Buffer.read(server, file.fullPath)
-				};
+			server.sync;
 
-				server.sync;
+			// Load SynthDefs
+			oldDefs = SynthDescLib.global.synthDescs.keys;
 
-				// Report a bit of information to user after loading stuff on boot
-				fork {
-					0.2.wait;
-					[
-						"BatteriesIncluded has loaded the following resources on the server:",
-						"-" + numSynthDefs + "SynthDefs",
-						"-" + samples.size + "Buffers with samples",
-						"-" + wavetables.size + "Buffers with wavetables",
-						"See the help file for BI for more information."
-					].do(_.postln);
-				}
-			});
+			PathName(this.assetFolder +/+ "SynthDefs").files
+			.select{ |f| f.extension == "scd" }
+			.do{ |f| f.fullPath.load };
+
+			synthDefs = SynthDescLib.global.synthDescs
+			.keys.difference(oldDefs);
+			server.sync;
+
+			// Report some info after server boot
+			fork {
+				0.1.wait;
+				[
+					"BatteriesIncluded has loaded the following resources on the server:",
+					"-" + synthDefs.size + "SynthDefs",
+					"-" + samples.size + "Buffers with samples",
+					"-" + wavetables.size + "Buffers with wavetables",
+					"See the help file for BI for more information."
+				].do(_.postln);
+			}
 		});
 
-
-		// Add some common specs (work with the SynthDefs included in BI)
 		StartUp.add({
+			// Add some common specs (these all work with the SynthDefs included in BI)
+			// TODO: Move Specs that are only relevant to one SynthDef to that def's metadata
 			specs = Dictionary.newFrom([
 				\atk, ControlSpec(0.001, 5, 4, 0, 0.01, "seconds"),
 				\dec, ControlSpec(0.001, 5, 4, 0, 0.2, "seconds"),
@@ -124,6 +136,20 @@ BI {
 
 	}
 
+	/*
+	*clock_ { | newClock |
+	clock = newClock ? TempoClock.default;
+	this.initClass;
+	}
+
+	*server_ { | newServer |
+		ServerBoot.removeAll(server);
+		ServerTree.removeAll(server);
+		server = newServer;
+		this.initClass;
+	}
+	*/
+
 	*clearBuffers {
 		server.serverRunning.not.if({
 			"Server is not running".error;
@@ -145,7 +171,6 @@ BI {
 			Spec.add(key, spec);
 		};
 		(specs.size + "specs from BI have been added to the global Spec dictionary.").postln;
-		("See BI.specDirectory for a list of the added specs.").postln;
 	}
 
 	*listSpecs {
@@ -153,10 +178,36 @@ BI {
 	}
 
 	*listSamples {
-		var r;
-		"Samples from the BatteriesIncluded quark loaded on the server:".postln;
-		samples.keys.asArray.sort.do{ |key|
-			var buf = this.samples[key],
+		this.prListBuffers("samples", this.samples);
+	}
+
+	*listWavetables {
+		this.prListBuffers("wavetables", this.wavetables);
+	}
+
+	*listSynthDefs {
+		synthDefs.do{ |sd|
+			sd.postln;
+		}
+	}
+
+	*prCheckServer {
+		server.serverRunning.not.if({
+			"Server is not running".warn;
+			"Try running s.boot to get going.".postln;
+			^false;
+		});
+		^true;
+	}
+
+	*prListBuffers { |name, dict|
+		var random;
+
+		this.prCheckServer.not.if({^nil});
+
+		"These % from the BatteriesIncluded quark are currently loaded into Buffers on the server:".postf(name); "".postln;
+		dict.keys.asArray.sort.do{ |key|
+			var buf = dict[key],
 			channels = buf.numChannels
 			.switch(1, "mono", 2, "stereo") ?
 			(buf.numChannels.asString + "channels");
@@ -167,31 +218,27 @@ BI {
 				+ "bufnum" + buf.bufnum
 			).postln;
 		};
-		r = samples.keys.choose;
-		("Example: To access the Buffer containing the sample" + r ++ ", use BI.samples[\\" ++ r ++ "] or BI.samples." ++ r).postln;
-	}
 
-	*listWavetables {
-		"Here will be listed the wavetables that come with BatteriesIncluded :-)".postln;
-	}
-
-	*prCheckServer {
-		server.serverRunning.not.if({
-			"Server is not running".warn;
-			^nil;
-		});
+		random = dict.keys.choose;
+		(
+			"Example: To access the Buffer containing the"
+			+ random ++ ", use BI."++name++"[\\"
+			++ random ++ "] or BI."++name++"."
+			++ random
+		).postln;
 	}
 }
 
 // A small extension of PathName - turns a file path into a "sanitized" symbol, for use as a dictionary key
 // Non-alphanumeric characters will be replaced with underscores
+// Alphabetic characteres will be turned into lower case
 + PathName {
 	asSafeKey {
 		var key = List.new, prev = $-;
 		this.fileNameWithoutExtension.do{ |char|
 			if (
 				char.isAlphaNum,
-				{ key.add(char) },
+				{ key.add(char.toLower) },
 				{
 					if (
 						prev.isAlphaNum,
