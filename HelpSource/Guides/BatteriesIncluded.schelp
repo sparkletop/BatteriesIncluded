@@ -14,6 +14,10 @@ The samples that come with BatteriesIncluded are a repackaged version of the sam
 The wavetables that come with BatteriesIncluded are a selection from the AKWF FREE wavetable pack by Kristoffer Ekstrand, aka. Adventure Kid. They have been placed in the public domain under the Creative Commons 0 License. See
 https://www.adventurekid.se/akrt/waveforms/adventure-kid-waveforms/ for further information.
 
-SECTION:: For now...
+SECTION:: Optional use of the sc3-plugins
 
-This guide will probably be updated in the future as BatteriesIncluded is developed further. For now, see the help files for link::Classes/BI:: and link::Classes/SynthDefGui:: to get started.
+A few of the SynthDefs that come with BatteriesIncluded are based on plugins which are not included in SuperCollider by default. These plugins can be easily installed - see https://supercollider.github.io/sc3-plugins/ for further information.
+
+SECTION:: Getting started
+
+This guide may be updated in the future. For now, see the help files for link::Classes/BI:: and link::Classes/SynthDefGui:: to get started.

@@ -1,5 +1,5 @@
 BI {
-	classvar <>assetFolder, <samples, <wavetables, <server, handlers, <synthDefs, <specs, <specOrder, <bufferInfo;
+	classvar <>assetFolder, <samples, <wavetables, <server, handlers, <synthDefs, <specs, <specOrder, <bufferInfo, pluginUGens;
 
 	*initClass {
 		server = server ? Server.default;
@@ -10,8 +10,10 @@ BI {
 		.select{ |q| q.name == "BatteriesIncluded"}
 		.first.localPath +/+ "Assets";
 
+		pluginUGens = Set[\EnvFollow, \FM7];
+
 		ServerBoot.add({
-			var oldDefs, sdFiles;
+			var oldDefs, sdFiles, pluginsNotFound;
 
 			// Load samples and wavetables into buffers
 			samples = ();
@@ -45,6 +47,17 @@ BI {
 			.select{ |f| f.extension == "scd" }
 			.do{ |f| f.fullPath.load };
 
+			// Check for presence of optional UGens (SC3 Plugins)
+			if (pluginUGens.isSubsetOf(
+				Class.allClasses.collect(_.name).asSet
+			), {
+				PathName(this.assetFolder +/+ "SynthDefs-sc3plugins").files
+				.select{ |f| f.extension == "scd" }
+				.do{ |f| f.fullPath.load };
+			}, {
+				pluginsNotFound = "Couldn't find sc3-plugins. See the help file for BatteriesIncluded for more information.";
+			});
+
 			synthDefs = SynthDescLib.global.synthDescs
 			.keys.difference(oldDefs);
 			server.sync;
@@ -57,8 +70,9 @@ BI {
 					"-" + synthDefs.size + "SynthDefs",
 					"-" + samples.size + "Buffers with samples",
 					"-" + wavetables.size + "Buffers with wavetables",
-					"See the help file for BI for more information."
+					"See the BI help file for more information."
 				].do(_.postln);
+				pluginsNotFound !? (_.warn);
 			}
 		});
 
@@ -143,10 +157,10 @@ BI {
 	}
 
 	*server_ { | newServer |
-		ServerBoot.removeAll(server);
-		ServerTree.removeAll(server);
-		server = newServer;
-		this.initClass;
+	ServerBoot.removeAll(server);
+	ServerTree.removeAll(server);
+	server = newServer;
+	this.initClass;
 	}
 	*/
 
@@ -229,7 +243,8 @@ BI {
 	}
 }
 
-// A small extension of PathName - turns a file path into a "sanitized" symbol, for use as a dictionary key
+// A small extension of PathName
+// Turns a file path into a "sanitized" symbol, for use as a dictionary key
 // Non-alphanumeric characters will be replaced with underscores
 // Alphabetic characteres will be turned into lower case
 + PathName {
