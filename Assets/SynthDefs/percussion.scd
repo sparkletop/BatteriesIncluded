@@ -97,3 +97,33 @@ SynthDef(\hihat, {
 	tags: [\percussion, \hihat]
 )).add;
 
+
+// An additive bell sound
+
+SynthDef(\bell,
+	{
+		arg freq = 200, amp = 0.1, pan = 0, atk = 0.01, rel = 3, detuneCurve = 4, outBus = 0;
+		// Every third harmonic - 15 voices
+		var sig = (1, 4 .. 43).collect{
+			arg num;
+			var
+			vAmp = Env.perc(
+				attackTime: ExpRand(atk * 0.1, atk * 10),
+				releaseTime: ExpRand(rel * 0.5, rel * 2)
+			).kr(0) * 0.5 * Rand(0.5, 1.5) *
+			num.reciprocal,
+
+			detuneMax = num.lincurve(1, 43, 0, 3, -10),
+
+			vFreq = freq * num * Rand(detuneMax.neg, detuneMax).midiratio * LFNoise1.kr(0.8).bipolar(detuneMax * vAmp).midiratio;
+
+			SinOsc.ar(vFreq) * vAmp;
+		}.sum * 0.1;
+		DetectSilence.ar(sig, doneAction: 2);
+		Out.ar(outBus, Pan2.ar(sig, pan, amp));
+	}, metadata: (
+		specs: (
+			detuneCurve: ControlSpec(-20, 20, \lin, default: 4),
+		)
+	)
+).add;
