@@ -2,7 +2,7 @@
 
 SynthDef(\wavetable, {
 	arg freq = 440, pan = 0, amp = 0.1, outBus = 0,
-	cutoffOctave = 4,	buffer,
+	cutoffOctave = 4,	buffer = BI.prBufInfo(\wavetables).lo,
 	atk = 0.1, sus = 1, rel = 0.8, gate = 1;
 
 	var sig, env;
@@ -36,10 +36,10 @@ metadata: (
 		outBus: BI.specs[\outBus],
 		cutoffOctave: BI.specs[\cutoffOctave],
 		buffer: ControlSpec(
-			minval: BI.bufferInfo.wavetables[\lo],
-			maxval: BI.bufferInfo.wavetables[\hi],
+			minval: BI.prBufInfo(\wavetables).lo,
+			maxval: BI.prBufInfo(\wavetables).hi,
 			step: 1,
-			default: BI.bufferInfo.wavetables[\lo]
+			default: BI.prBufInfo(\wavetables).lo
 		),
 		atk: BI.specs[\atk],
 		sus: BI.specs[\sus],

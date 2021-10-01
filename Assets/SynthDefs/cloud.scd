@@ -1,24 +1,7 @@
-// Produce a single grain (language side triggering of grains)
-SynthDef(\singleGrain, {
-	arg pan = 0, amp = 0.1, outBus = 0,
-	grainDur = 0.01, buffer, playbackRate = 1, position = 0;
-	var sig, env, pos;
-
-	env = Env.sine(grainDur).ar(2);
-
-	sig = PlayBuf.ar(1, buffer, playbackRate * BufRateScale.ir(buffer), 1, position * BufFrames.ir(buffer), 1);
-
-	sig = sig * env;
-
-	sig = Pan2.ar(sig, pan, amp);
-
-	Out.ar(outBus, sig);
-}).add;
-
 // Produce a cloud of grains (server side triggering of grains)
 [
 	(
-		defName: \cloud,
+		defName: \cloud, // unpitched
 		grainParams: {
 			arg overlap, grainDur = 0.025, loop = 1;
 			var triggerFreq = overlap * grainDur.reciprocal;
@@ -26,7 +9,7 @@ SynthDef(\singleGrain, {
 		}
 	),
 	(
-		defName: \pitchCloud,
+		defName: \pitchCloud, // pitched
 		grainParams: {
 			arg overlap, freq = 440;
 			var grainDur = overlap * freq.reciprocal;
@@ -39,7 +22,8 @@ SynthDef(\singleGrain, {
 		arg pan = 0, amp = 0.1, overlap = 5,
 		pointerRate = 1, scatter = 0, probability = 1,
 		transpose = 0, detuneStep = 0.01, stereoSpread = 0.05,
-		buffer, bufferRange = 0, pointerStartPos = 0,
+		buffer = BI.monoSamples.guit_e_fifths,
+		bufferRange = 0, pointerStartPos = 0,
 		triggerType = 0, t_resetPointer = 1,
 		outBus = 0,	atk = 0.01, sus = 1, rel = 0.1, gate = 1;
 
@@ -145,11 +129,15 @@ SynthDef(\singleGrain, {
 	metadata: (
 		credit: "Anders Eskildsen",
 		tags: [\granular],
+		description: "Granular synthesis for atmospheres and textures, grains are triggered server side",
+		specs: (
+			buffer: ControlSpec(
+				minval: BI.prBufInfo(\mSamples).lo,
+				maxval: BI.prBufInfo(\mSamples).hi,
+				step: 1,
+				default: BI.monoSamples.guit_e_fifths
+			)
+		)
 	)
 	).add;
 };
-/*
-// Change the default buffer for the \cloud SynthDef after loading
-SynthDescLib.global.synthDescs[\cloud]
-.controls.select{|c| c.name == \buffer }[0].defaultValue = ~defaultBuffer.bufnum;
-*/

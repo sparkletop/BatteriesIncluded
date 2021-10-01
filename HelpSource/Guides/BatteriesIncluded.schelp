@@ -9,7 +9,7 @@ A set of tools and resources designed to help beginners get up and running. Incl
 
 SECTION:: Sources
 
-The samples that come with BatteriesIncluded are a repackaged version of the samples that come with Sonic Pi. They have been placed in the public domain under the Creative Commons 0 License. See https://github.com/sonic-pi-net/sonic-pi/blob/main/etc/samples/README.md for further information.
+The samples that come with BatteriesIncluded are a repackaged version of the samples that come with Sonic Pi. They have been placed in the public domain under the Creative Commons 0 License. See https://github.com/sonic-pi-net/sonic-pi/blob/main/etc/samples/README.md for further information. For distribution with the BatteriesIncluded quark, all samples were converted to the OGG file format and converted between mono and stereo in order to have both versions available.
 
 The wavetables that come with BatteriesIncluded are a selection from the AKWF FREE wavetable pack by Kristoffer Ekstrand, aka. Adventure Kid. They have been placed in the public domain under the Creative Commons 0 License. See
 https://www.adventurekid.se/akrt/waveforms/adventure-kid-waveforms/ for further information.

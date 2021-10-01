@@ -14,22 +14,32 @@ When the audio server is booted, the audio resources (samples and wavetables) wi
 
 CLASSMETHODS::
 
-METHOD:: samples
+METHOD:: monoSamples
 
-Access the samples (audio recordings) that come with BatteriesIncluded.
+Access the mono samples (audio recordings) that come with BatteriesIncluded.
 
 returns:: A dictionary of Buffers containing samples
 
-METHOD:: listSamples
+METHOD:: listMonoSamples
 
-With the audio server booted, list the samples that come with BatteriesIncluded.
+With the audio server booted, list the mono samples that come with BatteriesIncluded.
+
+METHOD:: stereoSamples
+
+Access the stereo samples (audio recordings) that come with BatteriesIncluded.
+
+returns:: A dictionary of Buffers containing samples
+
+METHOD:: listStereoSamples
+
+With the audio server booted, list the stereo samples that come with BatteriesIncluded.
 
 
 METHOD:: wavetables
 
 Access the wavetables that come with BatteriesIncluded. For use with link::Classes/Osc:: and similar wavetable lookup UGens.
 
-To see graphical plots of the waveforms, go to https://www.adventurekid.se/AKRTfiles/AKWF/view/AKWF_0001/waveforms.html
+Graphical plots of the waveforms: https://www.adventurekid.se/AKRTfiles/AKWF/view/AKWF_0001/waveforms.html
 
 returns:: A dictionary of Buffers containing wavetables, each 8192 samples long.
 
@@ -37,11 +47,6 @@ returns:: A dictionary of Buffers containing wavetables, each 8192 samples long.
 METHOD:: listWavetables
 
 With the audio server booted, list the wavetables that come with BatteriesIncluded.
-
-
-METHOD:: clearBuffers
-
-Free all the Buffers that have been loaded onto the server by BatteriesIncluded.
 
 
 METHOD:: specs
@@ -76,7 +81,7 @@ METHOD:: listSynthDefs
 Lists the names of the SynthDefs that come with BatteriesIncluded.
 
 
-PRIVATE:: prCheckServer, prListBuffers, clock, synthDefs, server, assetFolder, bufferInfo
+PRIVATE:: prCheckServer, prListBuffers, clock, synthDefs, server, assetFolder, prBufInfo
 
 
 EXAMPLES::

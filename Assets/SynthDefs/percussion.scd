@@ -1,5 +1,4 @@
-// Various percussion SynthDefs
-// Nothing particularly fancy, just some basics to get started :)
+// Various percussion SynthDefs, nothing fancy
 
 SynthDef(\kick, {
 	arg pan = 0, amp = 0.1, outBus = 0,
@@ -19,9 +18,10 @@ SynthDef(\kick, {
 	Out.ar(outBus, sig);
 }, metadata: (
 	credit: "Anders Eskildsen",
-	category: \drums,
-	tags: [\percussion, \kick],
-	comments: "Inspired by Nathan Ho, see http://sccode.org/1-57g"
+	category: \percussion,
+	tags: [\kick, \subtractive],
+	comments: "Inspired by Nathan Ho, see http://sccode.org/1-57g",
+	description: "A kick drum with a bit of click"
 )).add;
 
 SynthDef(\snare,{
@@ -34,7 +34,11 @@ SynthDef(\snare,{
 		* body.dbamp,
 
 		// harmonics
-		LFTri.ar([286, 335] * Env.new([1, 1.5, 1], [0.01, 0.09], \sine).ar).sum
+		LFTri.ar([286, 335] * Env.new(
+			[1, 1.5, 1], [0.01, 0.09], \sine
+		).ar
+
+		).sum
 		* Env.perc(0.01, 0.1).ar * 2.dbamp
 		* harmonics.dbamp,
 
@@ -60,8 +64,8 @@ SynthDef(\snare,{
 	Out.ar(outBus, Pan2.ar(sig, pan, amp));
 }, metadata: (
 	credit: "Anders Eskildsen",
-	category: \drums,
-	tags: [\percussion, \snare],
+	category: \percussion,
+	tags: [\snare, \subtractive],
 	comments: "Inspired by Nathan Ho (http://sccode.org/1-57g) and Gordon Reid (https://www.soundonsound.com/techniques/practical-snare-drum-synthesis).",
 	specs: (
 		body: \db.asSpec,
@@ -69,7 +73,8 @@ SynthDef(\snare,{
 		click: \db.asSpec,
 		highNoise: \db.asSpec,
 		lowNoise: \db.asSpec;
-	)
+	),
+	description: "A snare drum sound with adjustable components"
 )).add;
 
 SynthDef(\hihat, {
@@ -93,16 +98,16 @@ SynthDef(\hihat, {
 	Out.ar(outBus, sig);
 }, metadata: (
 	credit: "Anders Eskildsen",
-	category: \drums,
-	tags: [\percussion, \hihat]
+	category: \percussion,
+	tags: [\hihat, \subtractive],
+	description: "A very simple closed hi hat sound"
 )).add;
 
 
 // An additive bell sound
-
 SynthDef(\bell,
 	{
-		arg freq = 200, amp = 0.1, pan = 0, atk = 0.01, rel = 3, detuneCurve = 4, outBus = 0;
+		arg freq = 200, amp = 0.1, pan = 0, atk = 0.01, rel = 5, detuneCurve = 4, outBus = 0;
 		// Every third harmonic - 15 voices
 		var sig = (1, 4 .. 43).collect{
 			arg num;
@@ -124,6 +129,10 @@ SynthDef(\bell,
 	}, metadata: (
 		specs: (
 			detuneCurve: ControlSpec(-20, 20, \lin, default: 4),
-		)
+		),
+		credit: "Anders Eskildsen",
+		category: \percussion,
+		tags: [\bell, \additive],
+		description: "An additive synthesis bell sound, with 15 individual components"
 	)
 ).add;

@@ -1,5 +1,5 @@
 BI {
-	classvar <>assetFolder, <samples, <wavetables, <server, handlers, <synthDefs, <specs, <specOrder, <bufferInfo, pluginUGens;
+	classvar <>assetFolder, <server, <synthDefs, <specs, <specOrder, pluginUGens, buffers;
 
 	*initClass {
 		server = server ? Server.default;
@@ -7,59 +7,83 @@ BI {
 		Class.initClassTree(Quarks);
 
 		assetFolder = Quarks.all
-		.select{ |q| q.name == "BatteriesIncluded"}
+		.select{ |q| q.name == "BatteriesIncluded" }
 		.first.localPath +/+ "Assets";
 
 		pluginUGens = Set[\EnvFollow, \FM7];
 
 		ServerBoot.add({
-			var oldDefs, sdFiles, pluginsNotFound;
+			var sdFiles, pluginsNotFound, loadSynthDefFolder;
+
+			buffers = (
+				\mSamples: (
+					name: "mono samples",
+					folder: "monoSamples"
+				),
+				\sSamples: (
+					name: "stereo samples",
+					folder: "stereoSamples"
+				),
+				\wavetables: (
+					name: "wavetables",
+					folder: "wavetables"
+				)
+			);
 
 			// Load samples and wavetables into buffers
-			samples = ();
-			wavetables = ();
-			bufferInfo = ();
-
-			[
-				(name: "Samples", dict: this.samples),
-				(name: "Wavetables", dict: this.wavetables)
-			].do{ |d|
+			buffers.keysValuesDo{ |key, collection|
 				var bufnums = List.new;
-				PathName(assetFolder +/+ d.name).files
-				.sort{ |a, b| a.fileName < b.fileName}
+
+				collection.bufs = ();
+
+				PathName(assetFolder +/+ collection.folder).files
+				.sort{ |a, b| a.fileName < b.fileName }
 				.do{ |file|
-					var key = file.asSafeKey;
-					d.dict[key] = Buffer.read(server, file.fullPath);
-					bufnums.add(d.dict[key].bufnum);
+					var bufKey = file.asSafeKey;
+
+					collection.bufs[bufKey] = Buffer.read(
+						server, file.fullPath
+					);
+
+					bufnums.add(collection.bufs[bufKey].bufnum);
 				};
-				bufferInfo[d.name.toLower.asSymbol] = Dictionary.newFrom([
-					\lo, bufnums.first,
-					\hi, bufnums.last
-				]);
+
+				collection.minmax = (
+					lo: bufnums.first,
+					hi: bufnums.last
+				);
 			};
 
 			server.sync;
 
 			// Load SynthDefs
-			oldDefs = SynthDescLib.global.synthDescs.keys;
 
-			PathName(this.assetFolder +/+ "SynthDefs").files
-			.select{ |f| f.extension == "scd" }
-			.do{ |f| f.fullPath.load };
+			synthDefs = ();
 
-			// Check for presence of optional UGens (SC3 Plugins)
+			loadSynthDefFolder = { |folderName|
+				PathName(this.assetFolder +/+ folderName).files
+				.select{ |file| file.extension == "scd" }
+				.do{ |file|
+					var oldDefs, newDefs;
+					oldDefs = SynthDescLib.global.synthDescs.keys;
+					file.fullPath.load;
+					newDefs = SynthDescLib.global.synthDescs.keys.difference(oldDefs);
+					newDefs.do{ |def| synthDefs[def] = file }
+				};
+			};
+
+			// Load SynthDefs which are compatible with standard lib
+			loadSynthDefFolder.("SynthDefs");
+
+			// Check for presence of SC3 Plugins
 			if (pluginUGens.isSubsetOf(
 				Class.allClasses.collect(_.name).asSet
 			), {
-				PathName(this.assetFolder +/+ "SynthDefs-sc3plugins").files
-				.select{ |f| f.extension == "scd" }
-				.do{ |f| f.fullPath.load };
+				loadSynthDefFolder.("SynthDefs-sc3plugins")
 			}, {
 				pluginsNotFound = "Couldn't find sc3-plugins. See the help file for BatteriesIncluded for more information.";
 			});
 
-			synthDefs = SynthDescLib.global.synthDescs
-			.keys.difference(oldDefs);
 			server.sync;
 
 			// Report some info after server boot
@@ -68,8 +92,9 @@ BI {
 				[
 					"BatteriesIncluded has loaded the following resources on the server:",
 					"-" + synthDefs.size + "SynthDefs",
-					"-" + samples.size + "Buffers with samples",
-					"-" + wavetables.size + "Buffers with wavetables",
+					"-" + buffers.mSamples.bufs.size + "Buffers with mono samples",
+					"-" + buffers.sSamples.bufs.size + "Buffers with stereo samples",
+					"-" + buffers.wavetables.bufs.size + "Buffers with wavetables",
 					"See the BI help file for more information."
 				].do(_.postln);
 				pluginsNotFound !? (_.warn);
@@ -101,6 +126,7 @@ BI {
 				\subDb, ControlSpec(-inf, 0.0, \db, 0, -20, "dB"),
 				\amp, ControlSpec(0, 1, 2, 0, 0.1),
 				\detuneStep, ControlSpec(0, 1, 4, 0, 0.01, "semitones"),
+				\startPosition, \unipolar.asSpec,
 				\grainDur, ControlSpec(0.001, 0.2, \exp, 0, 0.025, "seconds"),
 				\overlap, ControlSpec(0.1, 50, \exp, 0.1, 2),
 				\probability, \unipolar.asSpec,
@@ -108,7 +134,6 @@ BI {
 				\transpose, ControlSpec(-24, 24, 0, 1, 0, "semitones"),
 				\stereoSpread, \unipolar.asSpec,
 				\pointerStartPos, \unipolar.asSpec,
-				\startPosition, \unipolar.asSpec,
 				\scatter, ControlSpec(0, 5, 6, 0, 0, "seconds"),
 				\triggerType, ControlSpec(0, 1, 0, 1, 0),
 				\playbackRate, ControlSpec(-4, 4, 0, 0, 1),
@@ -147,7 +172,6 @@ BI {
 				\pan, \out, \outBus,
 			];
 		});
-
 	}
 
 	/*
@@ -164,21 +188,6 @@ BI {
 	}
 	*/
 
-	*clearBuffers {
-		server.serverRunning.not.if({
-			"Server is not running".error;
-			^nil;
-		});
-		samples.notNil.if({samples.values.do(_.free)});
-		wavetables.notNil.if({wavetables.values.do(_.free)});
-
-		server.sync;
-
-		samples = ();
-		wavetables = ();
-		^nil;
-	}
-
 	*addSpecsToGlobalLibrary {
 		specs.keysValuesDo{
 			arg key, spec;
@@ -191,18 +200,38 @@ BI {
 		specs.keys.do(_.postln);
 	}
 
-	*listSamples {
-		this.prListBuffers("samples", this.samples);
+	*prBufInfo { |key|
+		^buffers[key].minmax;
+	}
+
+	*monoSamples {
+		this.prCheckServer.not.if({^nil});
+		^buffers.mSamples.bufs;
+	}
+
+	*stereoSamples {
+		this.prCheckServer.not.if({^nil});
+		^buffers.sSamples.bufs;
+	}
+
+	*wavetables {
+		this.prCheckServer.not.if({^nil});
+		^buffers.wavetables.bufs;
+	}
+
+	*listStereoSamples {
+		this.prCheckServer.not.if({^nil});
+		this.prListBuffers(buffers.sSamples);
+	}
+
+	*listMonoSamples {
+		this.prCheckServer.not.if({^nil});
+		this.prListBuffers(buffers.mSamples);
 	}
 
 	*listWavetables {
-		this.prListBuffers("wavetables", this.wavetables);
-	}
-
-	*listSynthDefs {
-		synthDefs.do{ |sd|
-			sd.postln;
-		}
+		this.prCheckServer.not.if({^nil});
+		this.prListBuffers(buffers.wavetables);
 	}
 
 	*prCheckServer {
@@ -214,32 +243,36 @@ BI {
 		^true;
 	}
 
-	*prListBuffers { |name, dict|
-		var random;
-
+	*prListBuffers { |collection|
+		var keys;
 		this.prCheckServer.not.if({^nil});
 
-		"These % from the BatteriesIncluded quark are currently loaded into Buffers on the server:".postf(name); "".postln;
-		dict.keys.asArray.sort.do{ |key|
-			var buf = dict[key],
-			channels = buf.numChannels
-			.switch(1, "mono", 2, "stereo") ?
-			(buf.numChannels.asString + "channels");
+		"These % from the BatteriesIncluded quark are currently loaded into Buffers on the server:".postf(collection.name); "".postln;
+
+		keys = collection.bufs.keys.asArray.sort;
+		keys.do{ |key|
 			(
-				"\\" ++ key ++ ":"
-				+ buf.duration.round(0.001).asString ++ "s,"
-				+ channels ++ ","
-				+ "bufnum" + buf.bufnum
+				key ++ ":" +
+				collection.bufs[key].duration
+				.round(0.001).asString ++ "s"
 			).postln;
 		};
 
-		random = dict.keys.choose;
-		(
-			"Example: To access the Buffer containing the"
-			+ random ++ ", use BI."++name++"[\\"
-			++ random ++ "] or BI."++name++"."
-			++ random
-		).postln;
+		"See the BI help file for further information about how to access the Buffers.".postln;
+	}
+
+	*listSynthDefs {
+		this.prCheckServer.not.if({^nil});
+		synthDefs.keys.do{ |sd|
+			sd.postln;
+		}
+	}
+
+	*hackSynthDef { |synthDefName|
+		this.prCheckServer.not.if({^nil});
+		File.readAllString(
+			synthDefs[synthDefName].fullPath
+		).newTextWindow;
 	}
 }
 
