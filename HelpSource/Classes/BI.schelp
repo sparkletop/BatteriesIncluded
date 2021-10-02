@@ -80,6 +80,14 @@ METHOD:: listSynthDefs
 
 Lists the names of the SynthDefs that come with BatteriesIncluded.
 
+METHOD:: hackSynthDef
+
+Open a new document containing the source code for one of the SynthDefs that come with BatteriesIncluded. Hack away!
+
+ARGUMENT:: synthDefName
+
+The name of the desired SynthDef. For a list of SynthDefs, run code::BI.listSynthDefs::.
+
 
 PRIVATE:: prCheckServer, prListBuffers, clock, synthDefs, server, assetFolder, prBufInfo
 
@@ -96,16 +104,16 @@ s.boot;
 Working with the included samples
 code::
 // List the samples that come with BatteriesIncluded
-BI.listSamples;
+BI.listStereoSamples;
 
 // Play a randomly chosen sample
-BI.samples.choose.postln.play;
+BI.stereoSamples.choose.postln.play;
 
 // Play a specific sample with the name guit_em9
-BI.samples.guit_em9.play;
+BI.stereoSamples.guit_em9.play;
 
 // This notation is equivalent to the one above
-BI.samples[\guit_em9].play; // bracket notation
+BI.stereoSamples[\guit_em9].play; // bracket notation
 ::
 
 Working with the included wavetables

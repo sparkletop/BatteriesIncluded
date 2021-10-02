@@ -30,74 +30,78 @@ BI {
 				)
 			);
 
-			// Load samples and wavetables into buffers
-			buffers.keysValuesDo{ |key, collection|
-				var bufnums = List.new;
+			server.bind{
 
-				collection.bufs = ();
 
-				PathName(assetFolder +/+ collection.folder).files
-				.sort{ |a, b| a.fileName < b.fileName }
-				.do{ |file|
-					var bufKey = file.asSafeKey;
+				// Load samples and wavetables into buffers
+				buffers.keysValuesDo{ |key, collection|
+					var bufnums = List.new;
 
-					collection.bufs[bufKey] = Buffer.read(
-						server, file.fullPath
+					collection.bufs = ();
+
+					PathName(assetFolder +/+ collection.folder).files
+					.sort{ |a, b| a.fileName < b.fileName }
+					.do{ |file|
+						var bufKey = file.asSafeKey;
+
+						collection.bufs[bufKey] = Buffer.read(
+							server, file.fullPath
+						);
+
+						bufnums.add(collection.bufs[bufKey].bufnum);
+					};
+
+					collection.minmax = (
+						lo: bufnums.first,
+						hi: bufnums.last
 					);
-
-					bufnums.add(collection.bufs[bufKey].bufnum);
 				};
 
-				collection.minmax = (
-					lo: bufnums.first,
-					hi: bufnums.last
-				);
-			};
+				server.sync;
 
-			server.sync;
+				// Load SynthDefs
 
-			// Load SynthDefs
+				synthDefs = ();
 
-			synthDefs = ();
-
-			loadSynthDefFolder = { |folderName|
-				PathName(this.assetFolder +/+ folderName).files
-				.select{ |file| file.extension == "scd" }
-				.do{ |file|
-					var oldDefs, newDefs;
-					oldDefs = SynthDescLib.global.synthDescs.keys;
-					file.fullPath.load;
-					newDefs = SynthDescLib.global.synthDescs.keys.difference(oldDefs);
-					newDefs.do{ |def| synthDefs[def] = file }
+				loadSynthDefFolder = { |folderName|
+					PathName(this.assetFolder +/+ folderName).files
+					.select{ |file| file.extension == "scd" }
+					.do{ |file|
+						var oldDefs, newDefs;
+						oldDefs = SynthDescLib.global.synthDescs.keys;
+						file.fullPath.load;
+						newDefs = SynthDescLib.global.synthDescs.keys.difference(oldDefs);
+						newDefs.do{ |def| synthDefs[def] = file }
+					};
 				};
-			};
 
-			// Load SynthDefs which are compatible with standard lib
-			loadSynthDefFolder.("SynthDefs");
+				// Load SynthDefs which are compatible with standard lib
+				loadSynthDefFolder.("SynthDefs");
 
-			// Check for presence of SC3 Plugins
-			if (pluginUGens.isSubsetOf(
-				Class.allClasses.collect(_.name).asSet
-			), {
-				loadSynthDefFolder.("SynthDefs-sc3plugins")
-			}, {
-				pluginsNotFound = "Couldn't find sc3-plugins. See the help file for BatteriesIncluded for more information.";
-			});
+				// Check for presence of SC3 Plugins
+				if (pluginUGens.isSubsetOf(
+					Class.allClasses.collect(_.name).asSet
+				), {
+					loadSynthDefFolder.("SynthDefs-sc3plugins")
+				}, {
+					pluginsNotFound = "Couldn't find sc3-plugins. See the help file for BatteriesIncluded for more information.";
+				});
 
-			server.sync;
+				server.sync;
 
-			// Report some info after server boot
-			fork {
-				0.1.wait;
-				[
-					"BatteriesIncluded has loaded the following resources on the server:",
-					"-" + synthDefs.size + "SynthDefs",
-					"-" + buffers.mSamples.bufs.size + "Buffers with mono samples",
-					"-" + buffers.sSamples.bufs.size + "Buffers with stereo samples",
-					"-" + buffers.wavetables.bufs.size + "Buffers with wavetables",
-					"See the BI help file for more information."
-				].do(_.postln);
-				pluginsNotFound !? (_.warn);
+				// Report some info after server boot
+				fork {
+					0.1.wait;
+					[
+						"BatteriesIncluded has loaded the following resources on the server:",
+						"-" + synthDefs.size + "SynthDefs",
+						"-" + buffers.mSamples.bufs.size + "Buffers with mono samples",
+						"-" + buffers.sSamples.bufs.size + "Buffers with stereo samples",
+						"-" + buffers.wavetables.bufs.size + "Buffers with wavetables",
+						"See the BI help file for more information."
+					].do(_.postln);
+					pluginsNotFound !? (_.warn);
+				}
 			}
 		});
 
@@ -205,17 +209,14 @@ BI {
 	}
 
 	*monoSamples {
-		this.prCheckServer.not.if({^nil});
 		^buffers.mSamples.bufs;
 	}
 
 	*stereoSamples {
-		this.prCheckServer.not.if({^nil});
 		^buffers.sSamples.bufs;
 	}
 
 	*wavetables {
-		this.prCheckServer.not.if({^nil});
 		^buffers.wavetables.bufs;
 	}
 

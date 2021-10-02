@@ -303,7 +303,14 @@ SynthDefGui {
 			[playBtn, 'stretch', 3],
 
 			[Button()
-				.string_("Export as Synth")
+				.string_("Hack this SynthDef")
+				.font_(btnFont)
+				.action_({
+					BI.hackSynthDef(defName);
+			}), 'stretch', 2],
+
+			[Button()
+				.string_("Open as Synth")
 				.font_(btnFont)
 				.action_({
 					this.prShowSettingsWindow(
@@ -312,7 +319,7 @@ SynthDefGui {
 			}), 'stretch', 2],
 
 			[Button()
-				.string_("Export as Pbind")
+				.string_("Open as Pbind")
 				.font_(btnFont)
 				.action_({
 					this.prShowSettingsWindow(
@@ -339,7 +346,7 @@ SynthDefGui {
 				Window.availableBounds.width * 0.6,
 				0,
 				(Window.availableBounds.width * 0.4).clip(470, 700),
-				specs.size * 30 + 85
+				specs.size * 30 + 90
 			)
 			.center_(Window.availableBounds.center)
 			.left_(Window.availableBounds.width * 0.5)
