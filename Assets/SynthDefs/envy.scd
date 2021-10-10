@@ -15,6 +15,10 @@ SynthDef(\envy, {
 		gate: gate
 	);
 
+	// Pitch modulated by envelope
+	freq = env.lincurve(0, 1, freq * 0.75, freq, -5)
+	* SinOsc.kr(4 * env).bipolar(env * 0.125).midiratio;
+
 	// Source: Detune and waveform width modulated by envelope
 	sig = VarSaw.ar(
 		freq: freq * env.curverange(
