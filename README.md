@@ -9,7 +9,7 @@ This is alpha software, significant changes should be expected.
 ### Installation
 
 Open up SuperCollider and evaluate the following line of code:
-`Quarks.install("https://github.com/sparkletop/batteriesincluded")`
+`Quarks.install("https://github.com/sparkletop/BatteriesIncluded")`
 
 ### Credits
 
