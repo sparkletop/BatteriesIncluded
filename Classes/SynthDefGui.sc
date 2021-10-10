@@ -7,7 +7,7 @@ SynthDefGui {
 	group, synth, specs, keys, <window, grid,
 	gridContainer, sustainTime = 1,
 	snippetWindow, maxBufDisplay = 50, canvas,
-	looping = true, isPlaying = false, playBtn,
+	looping = true, isPlaying = false, playBtn, hackBtn,
 	timeSpec, startArgs, freeing = false;
 
 	*initClass {
@@ -282,6 +282,13 @@ SynthDefGui {
 
 		timeSpec = ControlSpec(0.1, 4, 2, 0.01, 1, "seconds");
 
+		hackBtn = Button()
+		.string_("Hack this SynthDef")
+		.font_(btnFont)
+		.action_({ BI.hackSynthDef(defName); });
+
+		if (BI.synthDefs[defName].isNil, {hackBtn.enabled_(false)});
+
 		topMenu = HLayout(
 			[HLayout(
 				[CheckBox()
@@ -302,12 +309,7 @@ SynthDefGui {
 
 			[playBtn, 'stretch', 3],
 
-			[Button()
-				.string_("Hack this SynthDef")
-				.font_(btnFont)
-				.action_({
-					BI.hackSynthDef(defName);
-			}), 'stretch', 2],
+			[hackBtn, 'stretch', 2],
 
 			[Button()
 				.string_("Open as Synth")

@@ -61,6 +61,12 @@ BI {
 
 				// Load SynthDefs
 
+				synthDefs.notNil.if({
+					synthDefs.keys.do{|defName|
+						SynthDescLib.global.removeAt(defName)
+					};
+				});
+
 				synthDefs = ();
 
 				loadSynthDefFolder = { |folderName|
@@ -271,9 +277,16 @@ BI {
 
 	*hackSynthDef { |synthDefName|
 		this.prCheckServer.not.if({^nil});
-		File.readAllString(
-			synthDefs[synthDefName].fullPath
-		).newTextWindow;
+		try {
+			^File.readAllString(
+				synthDefs[synthDefName].fullPath
+			).newTextWindow;
+		} { |error|
+			("Could not find" + synthDefName + "file.").error;
+			"Only SynthDefs that come with BatteriesIncluded are hackable like this. Are you sure the SynthDef you are hacking ".postln;
+			^nil;
+		};
+
 	}
 }
 
