@@ -7,7 +7,7 @@ BI {
 		Class.initClassTree(Quarks);
 
 		assetFolder = Quarks.all
-		.select{ |q| q.name.toLower == "batteriesincluded" }
+		.select{ |q| q.name == "BatteriesIncluded" }
 		.first.localPath +/+ "Assets";
 
 		pluginUGens = Set[\EnvFollow, \FM7];
