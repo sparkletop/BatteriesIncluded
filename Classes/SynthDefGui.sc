@@ -299,8 +299,8 @@ SynthDefGui {
 						looping = checked.value;
 						isPlaying.if({ this.restart; });
 				}), 'stretch', 1],
-				[Slider()
-					.orientation_(\horizontal)
+				[Knob()
+					//.orientation_(\horizontal)
 					.value_(timeSpec.unmap(sustainTime))
 					.action_({ | slider |
 						sustainTime = timeSpec.map(slider.value);

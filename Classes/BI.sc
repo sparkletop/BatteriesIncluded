@@ -135,7 +135,7 @@ BI {
 				\db, ControlSpec(-inf, 0.0, \db, 0, -20, "dB"),
 				\subDb, ControlSpec(-inf, 0.0, \db, 0, -20, "dB"),
 				\amp, ControlSpec(0, 1, 2, 0, 0.1),
-				\detuneStep, ControlSpec(0, 1, 4, 0, 0.01, "semitones"),
+				\detuneStep, ControlSpec(0, 0.5, 4, 0, 0.01, "semitones"),
 				\startPosition, \unipolar.asSpec,
 				\grainDur, ControlSpec(0.001, 0.2, \exp, 0, 0.025, "seconds"),
 				\overlap, ControlSpec(0.1, 50, \exp, 0.1, 2),
@@ -171,7 +171,7 @@ BI {
 				\lfoRate, \lfoAmp, \lfoDb, \lfodb,
 
 				// detuning
-				\detune, \detuneStep,
+				\detune, \detuneCent, \detuneStep,
 
 				// filter/effects settings
 				\cutoff, \cutoffOctave, \bandwidth, \rq, \filter, \filterFreq, \cutoffFreq,
