@@ -1,6 +1,6 @@
 // A SynthDef that showcases (mis)use of envelopes
 SynthDef(\envy, {
-	arg freq = 440, amp = 0.1, outBus = 0, gate = 1,
+	arg freq = 440, amp = 0.1, out = 0, gate = 1,
 	grainAmp = 0.3, atk = 2, rel = 4;
 	var env, sig, grains;
 
@@ -51,5 +51,5 @@ SynthDef(\envy, {
 
 	sig = Splay.ar(sig) + grains;
 	sig = sig * env * amp;
-	Out.ar(outBus, sig);
+	Out.ar(out, sig);
 }).add;

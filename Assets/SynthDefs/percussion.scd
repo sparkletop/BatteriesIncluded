@@ -1,7 +1,7 @@
 // Various percussion SynthDefs, nothing fancy
 
 SynthDef(\kick, {
-	arg pan = 0, amp = 0.1, outBus = 0,
+	arg pan = 0, amp = 0.1, out = 0,
 	rel = 0.2, cutoff = 2000;
 	var sig = [
 		// Click
@@ -15,7 +15,7 @@ SynthDef(\kick, {
 	sig = LPF.ar(sig, cutoff);
 
 	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(outBus, sig);
+	Out.ar(out, sig);
 }, metadata: (
 	credit: "Anders Eskildsen",
 	category: \percussion,
@@ -25,7 +25,7 @@ SynthDef(\kick, {
 )).add;
 
 SynthDef(\snare,{
-	arg pan = 0, amp = 0.1, outBus = 0,
+	arg pan = 0, amp = 0.1, out = 0,
 	body = -3, harmonics = 0, click = 0, highNoise = -6, lowNoise = -5;
 	var sig = [
 		// main body
@@ -61,7 +61,7 @@ SynthDef(\snare,{
 	// distortion/compression
 	sig = (sig * 1.5).tanh;
 
-	Out.ar(outBus, Pan2.ar(sig, pan, amp));
+	Out.ar(out, Pan2.ar(sig, pan, amp));
 }, metadata: (
 	credit: "Anders Eskildsen",
 	category: \percussion,
@@ -78,7 +78,7 @@ SynthDef(\snare,{
 )).add;
 
 SynthDef(\hihat, {
-	arg pan = 0, amp = 0.1, outBus = 0,
+	arg pan = 0, amp = 0.1, out = 0,
 	rel = 0.1, cutoff = 4000;
 	var env, sig;
 
@@ -95,7 +95,7 @@ SynthDef(\hihat, {
 	sig = sig * 0.2 * env;
 
 	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(outBus, sig);
+	Out.ar(out, sig);
 }, metadata: (
 	credit: "Anders Eskildsen",
 	category: \percussion,
@@ -107,7 +107,7 @@ SynthDef(\hihat, {
 // An additive bell sound
 SynthDef(\bell,
 	{
-		arg freq = 200, amp = 0.1, pan = 0, atk = 0.01, rel = 5, detuneCurve = 4, outBus = 0;
+		arg freq = 200, amp = 0.1, pan = 0, atk = 0.01, rel = 5, detuneCurve = 4, out = 0;
 		// Every third harmonic - 15 voices
 		var sig = (1, 4 .. 43).collect{
 			arg num;
@@ -125,7 +125,7 @@ SynthDef(\bell,
 			SinOsc.ar(vFreq) * vAmp;
 		}.sum * 0.1;
 		DetectSilence.ar(sig, doneAction: 2);
-		Out.ar(outBus, Pan2.ar(sig, pan, amp));
+		Out.ar(out, Pan2.ar(sig, pan, amp));
 	}, metadata: (
 		specs: (
 			detuneCurve: ControlSpec(-20, 20, \lin, default: 4),

@@ -1,6 +1,6 @@
 // Produce a single grain (language side triggering of grains)
 SynthDef(\grain, {
-	arg pan = 0, amp = 0.1, outBus = 0,
+	arg pan = 0, amp = 0.1, out = 0,
 	grainDur = 0.01, buffer, transpose = 0, startPosition = 0;
 	var sig, env;
 
@@ -19,7 +19,7 @@ SynthDef(\grain, {
 
 	sig = Pan2.ar(sig, pan, amp);
 
-	Out.ar(outBus, sig);
+	Out.ar(out, sig);
 }, metadata: (
 		specs: (
 			detuneCurve: ControlSpec(-20, 20, \lin, default: 4),

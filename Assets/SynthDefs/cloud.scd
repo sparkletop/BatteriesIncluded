@@ -25,7 +25,7 @@
 		buffer = BI.monoSamples.guit_e_fifths,
 		bufferRange = 0, pointerStartPos = 0,
 		triggerType = 0, t_resetPointer = 1,
-		outBus = 0,	atk = 0.01, sus = 1, rel = 0.1, gate = 1;
+		out = 0,	atk = 0.01, sus = 1, rel = 0.1, gate = 1;
 
 		var sig, env, triggerFreq, trigger, params, atEnd,
 		pointerPosition, panPosition, buf, grainDur, loop,
@@ -124,7 +124,7 @@
 
 		sig = Limiter.ar(sig);
 
-		Out.ar(outBus, sig);
+		Out.ar(out, sig);
 	}, (0.2!9),
 	metadata: (
 		credit: "Anders Eskildsen",

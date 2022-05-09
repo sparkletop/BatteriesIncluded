@@ -1,7 +1,7 @@
 // Wavetable synthesis
 
 SynthDef(\wavetable, {
-	arg freq = 440, pan = 0, amp = 0.1, outBus = 0,
+	arg freq = 440, pan = 0, amp = 0.1, out = 0,
 	cutoffOctave = 4,	buffer = BI.prBufInfo(\wavetables).lo,
 	atk = 0.1, sus = 1, rel = 0.8, gate = 1;
 
@@ -25,7 +25,7 @@ SynthDef(\wavetable, {
 	);
 
 	sig = Pan2.ar(sig, pan, amp) * env;
-	Out.ar(outBus, sig);
+	Out.ar(out, sig);
 }, (1!5),
 
 metadata: (
@@ -33,7 +33,7 @@ metadata: (
 		freq: BI.specs[\freq],
 		pan: BI.specs[\pan],
 		amp: BI.specs[\amp],
-		outBus: BI.specs[\outBus],
+		out: BI.specs[\out],
 		cutoffOctave: BI.specs[\cutoffOctave],
 		buffer: ControlSpec(
 			minval: BI.prBufInfo(\wavetables).lo,

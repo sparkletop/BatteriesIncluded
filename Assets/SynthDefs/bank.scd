@@ -1,7 +1,7 @@
 // Oscillator bank synthesis
 
 SynthDef(\bank, {
-	arg freq = 220, pan = 0, amp = 0.1,	outBus = 0,
+	arg freq = 220, pan = 0, amp = 0.1,	out = 0,
 	detuneCent = 10,	subAmp = 0.1, spread = 0.75,
 	drive = 0.1, cutoffOctave = 4, rq = 1,
 	atk = 0.02, dec = 0.1, sus = 0.9, rel = 0.3, gate = 1;
@@ -43,7 +43,7 @@ SynthDef(\bank, {
 
 	sig = Balance2.ar(sig[0], sig[1], pan, amp);
 
-	Out.ar(outBus, sig);
+	Out.ar(out, sig);
 }, (1!10), metadata: (
 	specs: (
 		detuneCent: ControlSpec(0, 50, 0, 1, 10, "cent"),

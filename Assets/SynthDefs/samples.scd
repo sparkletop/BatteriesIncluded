@@ -1,7 +1,7 @@
 // Enveloped mono and stereo sample playback
 
 SynthDef(\mSample, {
-	arg amp = 0.1, outBus = 0, pan = 0,
+	arg amp = 0.1, out = 0, pan = 0,
 	drive = 0, cutoff = 20000,
 	playbackRate = 1, startPosition = 0,
 	buffer = BI.prBufInfo(\mSamples).lo,
@@ -31,7 +31,7 @@ SynthDef(\mSample, {
 
 	sig = Pan2.ar(sig, pan, amp);
 
-	Out.ar(outBus, sig);
+	Out.ar(out, sig);
 
 },
 metadata: (
@@ -63,7 +63,7 @@ metadata: (
 )).add;
 
 SynthDef(\sSample, {
-	arg amp = 0.1, outBus = 0, pan = 0,
+	arg amp = 0.1, out = 0, pan = 0,
 	drive = 0, cutoff = 20000,
 	playbackRate = 1, startPosition = 0,
 	buffer = BI.prBufInfo(\sSamples).lo,
@@ -93,7 +93,7 @@ SynthDef(\sSample, {
 
 	sig = Balance2.ar(sig[0], sig[1], pan, amp);
 
-	Out.ar(outBus, sig);
+	Out.ar(out, sig);
 
 },
 metadata: (

@@ -127,9 +127,7 @@ BI {
 				\lfoFreq, \lfoRate.asSpec,
 				\lfoDepth, ControlSpec(0, 1, 2, 0, 0.1),
 				\lfoRand, ControlSpec(0, 1, 2, 0, 0.2),
-				\outBus, \audiobus.asSpec,
 				\out, \audiobus.asSpec,
-				\inBus, \audiobus.asSpec,
 				\in, \audiobus.asSpec,
 				\drive, \unipolar.asSpec,
 				\db, ControlSpec(-inf, 0.0, \db, 0, -20, "dB"),
@@ -178,8 +176,8 @@ BI {
 				\fFreq, \room, \roomsize, \roomSize, \delay, \delayTime, \drive,
 
 				// routing settings
-				\in, \inBus, \mix, \spread, \stereoSpread,
-				\pan, \out, \outBus,
+				\in, \mix, \spread, \stereoSpread, \wet,
+				\pan, \out,
 			];
 		});
 	}
