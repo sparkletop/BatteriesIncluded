@@ -27,13 +27,16 @@ SynthDef(\mSample, {
 		cutoff.clip(20, 20000)
 	);
 
-	sig = Pan2.ar(sig, pan, amp) * env;
+	sig = sig * env;
+
+	sig = Pan2.ar(sig, pan, amp);
 
 	Out.ar(outBus, sig);
+
 },
 metadata: (
 	credit: "Anders Eskildsen",
-	tags: [\granular],
+	tags: [\sampler],
 	description: "Enveloped sample player for mono samples",
 	specs: (
 		drive: \unipolar.asSpec,
@@ -58,7 +61,6 @@ metadata: (
 		)
 	)
 )).add;
-
 
 SynthDef(\sSample, {
 	arg amp = 0.1, outBus = 0, pan = 0,
@@ -87,14 +89,17 @@ SynthDef(\sSample, {
 		cutoff.clip(20, 20000)
 	);
 
-	sig = Balance2.ar(sig[0], sig[1], pan);
+	sig = sig * env;
+
+	sig = Balance2.ar(sig[0], sig[1], pan, amp);
 
 	Out.ar(outBus, sig);
+
 },
 metadata: (
 	credit: "Anders Eskildsen",
-	tags: [\granular],
-	description: "Enveloped sample player for mono samples",
+	tags: [\sampler],
+	description: "Enveloped sample player for stereo samples",
 	specs: (
 		drive: \unipolar.asSpec,
 		startPosition: \unipolar.asSpec,
